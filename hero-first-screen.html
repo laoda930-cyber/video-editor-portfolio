@@ -56,6 +56,7 @@
     .device-camera{position:absolute;z-index:10;top:10px;left:50%;width:28%;height:18px;border-radius:999px;background:#181919;transform:translateX(-50%);box-shadow:inset 0 -1px 0 rgba(255,255,255,.08)}
     .device-reflection{position:absolute;z-index:8;inset:0;border-radius:25px;background:linear-gradient(115deg,rgba(255,255,255,.12),transparent 25%,transparent 72%,rgba(255,255,255,.05));pointer-events:none}
     .scene-track{height:100%;transition:transform 420ms var(--ease);will-change:transform}
+    .scene-track.is-resetting{transition:none!important}
     .preview-scene{position:relative;height:100%;overflow:hidden;color:#fff}
     .scene-art{position:absolute;inset:0;overflow:hidden}
     .scene-meta{position:absolute;z-index:6;right:24px;bottom:28px;left:24px;padding-top:14px;border-top:1px solid rgba(255,255,255,.38)}
@@ -247,9 +248,14 @@
       const nextButton = document.querySelector('#next-work');
       const status = document.querySelector('.scene-status');
       const transitionMs = 420;
+      const loopScene = scenes[0].cloneNode(true);
+      loopScene.removeAttribute('data-scene');
+      loopScene.setAttribute('aria-hidden', 'true');
+      track.appendChild(loopScene);
       let activeIndex = 0;
       let isTransitioning = false;
       let releaseTimer = 0;
+      let transitionToken = 0;
 
       function syncAccessibleState() {
         const title = scenes[activeIndex].dataset.title;
@@ -260,8 +266,17 @@
         status.textContent = '当前作品：' + title;
       }
 
-      function releaseTransition() {
+      function resetAfterWrap() {
+        track.classList.add('is-resetting');
+        track.style.transform = 'translate3d(0, -0%, 0)';
+        void track.offsetWidth;
+        track.classList.remove('is-resetting');
+      }
+
+      function releaseTransition(token, shouldReset) {
+        if (token !== transitionToken) return;
         window.clearTimeout(releaseTimer);
+        if (shouldReset) resetAfterWrap();
         isTransitioning = false;
         track.classList.remove('is-switching');
         nextButton.disabled = false;
@@ -273,25 +288,23 @@
         nextButton.disabled = true;
         track.classList.add('is-switching');
 
+        const shouldReset = activeIndex === scenes.length - 1;
         const nextIndex = (activeIndex + 1) % scenes.length;
         activeIndex = nextIndex;
-        track.style.transform = 'translate3d(0, -' + (nextIndex * 100) + '%, 0)';
+        const visualIndex = shouldReset ? scenes.length : nextIndex;
+        track.style.transform = 'translate3d(0, -' + (visualIndex * 100) + '%, 0)';
         syncAccessibleState();
 
         const reducedMotion = window.matchMedia &&
           window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const token = ++transitionToken;
         releaseTimer = window.setTimeout(
-          releaseTransition,
+          () => releaseTransition(token, shouldReset),
           reducedMotion ? 20 : transitionMs + 30
         );
       }
 
       nextButton.addEventListener('click', goToNext);
-      track.addEventListener('transitionend', (event) => {
-        if (event.target === track && event.propertyName === 'transform') {
-          releaseTransition();
-        }
-      });
       syncAccessibleState();
     })();
   </script>
