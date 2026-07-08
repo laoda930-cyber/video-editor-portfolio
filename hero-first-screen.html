@@ -240,6 +240,60 @@
     </section>
     <p class="edition">PORTFOLIO · 2026</p>
   </main>
-  <script></script>
+  <script>
+    (() => {
+      const track = document.querySelector('.scene-track');
+      const scenes = [...document.querySelectorAll('.preview-scene[data-scene]')];
+      const nextButton = document.querySelector('#next-work');
+      const status = document.querySelector('.scene-status');
+      const transitionMs = 420;
+      let activeIndex = 0;
+      let isTransitioning = false;
+      let releaseTimer = 0;
+
+      function syncAccessibleState() {
+        const title = scenes[activeIndex].dataset.title;
+        nextButton.setAttribute(
+          'aria-label',
+          '下一个作品，当前第 ' + (activeIndex + 1) + ' 个，共 ' + scenes.length + ' 个'
+        );
+        status.textContent = '当前作品：' + title;
+      }
+
+      function releaseTransition() {
+        window.clearTimeout(releaseTimer);
+        isTransitioning = false;
+        track.classList.remove('is-switching');
+        nextButton.disabled = false;
+      }
+
+      function goToNext() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        nextButton.disabled = true;
+        track.classList.add('is-switching');
+
+        const nextIndex = (activeIndex + 1) % scenes.length;
+        activeIndex = nextIndex;
+        track.style.transform = 'translate3d(0, -' + (nextIndex * 100) + '%, 0)';
+        syncAccessibleState();
+
+        const reducedMotion = window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        releaseTimer = window.setTimeout(
+          releaseTransition,
+          reducedMotion ? 20 : transitionMs + 30
+        );
+      }
+
+      nextButton.addEventListener('click', goToNext);
+      track.addEventListener('transitionend', (event) => {
+        if (event.target === track && event.propertyName === 'transform') {
+          releaseTransition();
+        }
+      });
+      syncAccessibleState();
+    })();
+  </script>
 </body>
 </html>
