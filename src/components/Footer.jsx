@@ -1,0 +1,1 @@
+export default function Footer() { return <footer className="simple-footer page-shell"><div><span>LXX · VIDEO EDITOR</span><p>每一帧，都为被看见而生。</p></div><div><a href="mailto:1888888888@qq.com">1888888888@qq.com</a><a href="tel:1888888888">1888888888</a></div><span>© 2026</span></footer> }

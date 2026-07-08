@@ -1,0 +1,2 @@
+import WorkCard from './WorkCard'
+export default function WorkSection({ category, works, onSelect }) { return <section className="category-section page-shell" id={category.id}><header className="category-head"><div><span>{category.index}</span><p>{category.en}</p></div><h2>{category.name}</h2><span>{String(works.length).padStart(2, '0')} WORKS</span></header><div className="category-grid">{works.map((work) => <WorkCard key={work.id} work={work} onSelect={onSelect}/>)}</div></section> }

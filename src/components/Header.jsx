@@ -1,1 +1,3 @@
-export default function Header() { return <header className="site-header"><a className="brand" href="#home" aria-label="返回首页"><span>LXX</span><b>李欣霞</b></a><nav aria-label="主导航"><a href="#about">关于</a><a href="#works">作品</a><a href="#strengths">优势</a><a className="nav-contact" href="#contact">联系我</a></nav></header> }
+export default function Header({ categories }) {
+  return <header className="site-header"><a className="brand" href="#featured" aria-label="返回精选作品"><span>LXX</span><span><b>李欣霞</b><small>VIDEO EDITOR</small></span></a><nav aria-label="作品分类">{categories.map((category) => <a key={category.id} href={`#${category.id}`}>{category.name}</a>)}</nav><a className="header-contact" href="mailto:1888888888@qq.com">联系</a></header>
+}

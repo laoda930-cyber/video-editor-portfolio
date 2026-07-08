@@ -1,0 +1,2 @@
+import WorkCard from './WorkCard'
+export default function FeaturedWorks({ works, onSelect }) { return <section className="featured-section page-shell" id="featured"><div className="featured-heading"><p>SELECTED WORKS · 2024—2026</p><h1>精选作品</h1><span>向下滚动，按类型浏览全部视频作品</span></div><div className="featured-grid">{works.map((work) => <WorkCard key={work.id} work={work} featured onSelect={onSelect}/>)}</div></section> }
