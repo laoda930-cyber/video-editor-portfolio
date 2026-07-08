@@ -6,14 +6,14 @@
   <meta name="description" content="李欣霞，视频剪辑师作品集首屏。">
   <title>李欣霞 · 视频剪辑师</title>
   <style>
-    :root{--paper:#f5f3f0;--ink:#1a1a1a;--muted:#68645f;--accent:#e8a87c;--line:rgba(26,26,26,.13);--ease:cubic-bezier(.4,0,.2,1);}
+    :root{--paper:#f5f3f0;--ink:#1a1a1a;--muted:#68645f;--accent:#e8a87c;--focus:#7a4529;--line:rgba(26,26,26,.13);--ease:cubic-bezier(.4,0,.2,1);}
 
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
     body{margin:0;background:var(--paper);color:var(--ink);font-family:"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif}
     a{color:inherit}
     button,a{-webkit-tap-highlight-color:transparent}
-    :focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+    :focus-visible{outline:3px solid var(--focus);outline-offset:4px}
     .skip-link{position:fixed;z-index:100;top:12px;left:12px;padding:12px 18px;border-radius:999px;background:var(--ink);color:var(--paper);font-size:14px;text-decoration:none;transform:translateY(-180%);transition:transform 180ms var(--ease)}
     .skip-link:focus{transform:translateY(0)}
 
@@ -37,12 +37,11 @@
     .brand strong{font-size:15px;font-weight:600;letter-spacing:.08em}
     .brand small{margin-top:3px;color:var(--muted);font-size:9px;letter-spacing:.19em}
     .hero-header nav{display:flex;align-items:center;gap:clamp(18px,2.4vw,38px)}
-    .hero-header nav a{display:inline-flex;min-height:48px;align-items:center;color:var(--muted);font-size:13px;text-decoration:none;transition:color 180ms var(--ease)}
+    .hero-header nav a{display:inline-flex;min-width:48px;min-height:48px;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-decoration:none;transition:color 180ms var(--ease)}
     .hero-header nav a:hover{color:var(--ink)}
 
     .hero-layout{position:relative;z-index:2;display:grid;grid-template-columns:minmax(340px,5fr) minmax(520px,7fr);gap:clamp(36px,5vw,86px);min-height:calc(100svh - 88px);align-items:center;padding-block:48px 56px}
     .hero-copy{max-width:620px}
-    .hero-copy:focus{outline:none}
     .eyebrow{display:flex;align-items:center;gap:12px;margin:0 0 28px;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.18em}
     .eyebrow span{width:38px;height:1px;background:var(--accent)}
     h1{margin:0;font-size:clamp(56px,5.2vw,84px);font-weight:400;line-height:1.07;letter-spacing:-.065em}
@@ -95,7 +94,7 @@
     .scene-motion{color:#1e3b51;background-color:#e9e6df;background-image:linear-gradient(rgba(30,59,81,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(30,59,81,.12) 1px,transparent 1px);background-size:38px 38px}
     .scene-motion::after{content:"MOTION";position:absolute;top:22%;left:-4%;font-size:clamp(66px,7.2vw,110px);font-weight:700;letter-spacing:-.08em;color:rgba(30,59,81,.12);transform:rotate(-8deg)}
     .scene-motion .scene-meta{border-top-color:rgba(30,59,81,.34)}
-    .scene-motion .scene-meta span{opacity:.62}
+    .scene-motion .scene-meta span{color:#1e3b51;opacity:1}
     .node{position:absolute;z-index:3;display:block;background:#1e3b51;box-shadow:0 16px 30px rgba(30,59,81,.18);animation:node-float 5.5s ease-in-out infinite alternate}
     .node-a{top:22%;left:18%;width:76px;height:76px;border-radius:50%}
     .node-b{top:43%;right:14%;width:92px;height:92px;border:2px solid #1e3b51;background:rgba(233,230,223,.75);transform:rotate(18deg);animation-delay:-1.8s}
@@ -112,7 +111,7 @@
     #next-work svg{position:absolute;bottom:11px;width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8}
     #next-work:hover{background:rgba(26,26,26,.98);box-shadow:0 18px 38px rgba(26,26,26,.28);transform:translateY(-3px)}
     #next-work:active{transform:translateY(1px) scale(.96)}
-    #next-work:focus-visible{outline-color:var(--ink);box-shadow:0 0 0 5px var(--paper),0 0 0 8px var(--accent)}
+    #next-work:focus-visible{outline-color:var(--focus);box-shadow:0 0 0 5px var(--paper),0 0 0 8px var(--focus)}
     .character-layer{width:1px;height:72px;background:linear-gradient(var(--line),transparent)}
     .scene-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     .edition{position:absolute;z-index:2;right:18px;bottom:50%;margin:0;color:var(--muted);font-size:9px;letter-spacing:.2em;transform:translateY(50%) rotate(90deg)}
@@ -135,7 +134,7 @@
       .edition{display:none}
     }
 
-    @media(max-width:720px){
+    @media(max-width:900px){
       .portfolio-hero{overflow-x:hidden;overflow-y:visible;padding-inline:clamp(18px,6vw,32px)}
       .hero-header{height:72px}
       .hero-header nav{gap:10px}.hero-header nav a{padding-inline:6px;font-size:12px}
@@ -154,6 +153,11 @@
       #next-work{width:64px;height:64px}
       #next-work svg{bottom:8px}
       .character-layer{width:64px;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+    }
+
+    @media(max-width:720px){
+      .hero-header nav{gap:6px}
+      .hero-header nav a{padding-inline:4px}
     }
 
     @media(max-width:390px){
