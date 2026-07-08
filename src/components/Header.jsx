@@ -1,0 +1,1 @@
+export default function Header() { return <header className="site-header"><a className="brand" href="#home" aria-label="返回首页"><span>LXX</span><b>李欣霞</b></a><nav aria-label="主导航"><a href="#about">关于</a><a href="#works">作品</a><a href="#strengths">优势</a><a className="nav-contact" href="#contact">联系我</a></nav></header> }
