@@ -1,0 +1,1389 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="第一屏对话组件与左侧柔边粘稠条形导航独立原型。">
+  <title>第一屏对话组件与粘稠侧边条 · 李欣霞作品集</title>
+  <style>
+    :root{
+      --page-bg:#f6f7f5;
+      --surface-white:#ffffff;
+      --dot-size:1.5px;
+      --dot-gap:18px;
+      --dot-color:rgba(35,39,37,.56);
+      --paper:var(--page-bg);
+      --ink:#111411;
+      --muted:#606964;
+      --accent:#6f8d86;
+      --line:rgba(17,20,17,.09);
+      --glass:rgba(255,255,255,.78);
+      --glass-strong:rgba(255,255,255,.9);
+      --shadow:0 6px 14px rgba(17,20,17,.07);
+      --strip-radius:12px;
+      --ease:cubic-bezier(.22,1,.36,1);
+      --spring:linear(0,0.055,0.19 3%,0.82 9%,1.08,1.2 18%,1.08 28%,1 43%,0.98 62%,1);
+      --linear-ease:linear(0,0.068,0.19 2.7%,0.804 8.1%,1.037,1.199 13.2%,1.245,1.27 15.8%,1.274,1.272 17.4%,1.249 19.1%,0.996 28%,0.949,0.928 33.3%,0.926,0.933 36.8%,1.001 45.6%,1.013,1.019 50.8%,1.018 54.4%,1 63.1%,0.995 68%,1.001 85%,1);
+      font-family:"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif;
+      color:var(--ink);
+      background:var(--page-bg);
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-height:100svh;background:var(--page-bg);overflow:hidden}
+    button,a{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+    button{cursor:pointer}
+    :focus-visible{outline:3px solid #7a4529;outline-offset:4px}
+
+    .home-nav-prototype{
+      position:relative;
+      min-height:100svh;
+      overflow:hidden;
+      padding:0 clamp(24px,5.55vw,80px) 64px;
+      isolation:isolate;
+    }
+
+    .dot-grid-background{
+      position:absolute;
+      z-index:-2;
+      inset:0;
+      background-color:#fff;
+      background-image:radial-gradient(circle,var(--dot-color) var(--dot-size),transparent calc(var(--dot-size) + .2px));
+      background-position:0 0;
+      background-size:var(--dot-gap) var(--dot-gap);
+      pointer-events:none;
+    }
+
+    .dialogue-component{
+      position:absolute;
+      z-index:20;
+      left:50%;
+      top:clamp(22px,4vw,46px);
+      width:min(620px,calc(100vw - 48px));
+      min-height:66px;
+      transform:translateX(-50%);
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:14px;
+      border:1px solid rgba(17,20,17,.08);
+      border-radius:14px;
+      padding:11px 13px 11px 15px;
+      background:rgba(255,255,255,.94);
+      box-shadow:0 4px 8px rgba(17,20,17,.055);
+      transition:transform 260ms var(--ease),box-shadow 260ms var(--ease),background-color 260ms var(--ease);
+    }
+
+    .dialogue-component:hover{
+      transform:translateX(-50%) translateY(-2px);
+      background:rgba(255,255,255,.78);
+      box-shadow:0 5px 8px rgba(17,20,17,.07);
+    }
+
+    .dialogue-mark{
+      display:grid;
+      width:38px;
+      height:38px;
+      place-items:center;
+      border-radius:12px;
+      background:var(--ink);
+      color:#fff;
+      font-size:10px;
+      font-weight:700;
+      letter-spacing:.08em;
+    }
+
+    .dialogue-copy{min-width:0;margin:0}
+
+    .dialogue-copy small{
+      display:block;
+      color:var(--muted);
+      font-size:9px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .dialogue-copy span{
+      display:block;
+      margin-top:4px;
+      overflow:hidden;
+      color:var(--ink);
+      font-size:15px;
+      line-height:1.35;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+      letter-spacing:.01em;
+    }
+
+    .dialogue-event-tag{
+      min-width:74px;
+      height:38px;
+      display:grid;
+      place-items:center;
+      border:0;
+      border-radius:12px;
+      background:rgba(26,26,26,.08);
+      color:var(--muted);
+      font-size:10px;
+      letter-spacing:.12em;
+      transition:background-color 220ms var(--ease),color 220ms var(--ease),transform 220ms var(--ease);
+    }
+
+    .dialogue-event-tag.is-liked{
+      background:var(--ink);
+      color:#fff;
+    }
+
+    .dialogue-event-tag:active{transform:scale(.96)}
+
+    .side-gooey-strip{
+      position:fixed;
+      z-index:30;
+      left:20px;
+      top:50%;
+      transform:translateY(-50%);
+      width:48px;
+      height:184px;
+      padding:0;
+      color:#fff;
+      isolation:isolate;
+    }
+
+    .gooey-nav-container{
+      position:relative;
+      width:48px;
+      height:184px;
+      min-height:0;
+      padding:8px 3px;
+      border:1px solid rgba(17,20,17,.16);
+      border-radius:999px;
+      background:#171a18;
+      box-shadow:none;
+      overflow:visible;
+      transform:translate3d(0,0,.01px);
+    }
+
+    .gooey-nav-container nav{
+      position:relative;
+      z-index:3;
+      height:100%;
+    }
+
+    .gooey-nav-container ul{
+      position:relative;
+      z-index:3;
+      display:grid;
+      grid-template-rows:repeat(4,1fr);
+      gap:0;
+      height:100%;
+      margin:0;
+      padding:0;
+      list-style:none;
+      color:#fff;
+      text-shadow:none;
+    }
+
+    .side-nav-item{
+      position:relative;
+      height:42px;
+      display:grid;
+      align-items:center;
+      border-radius:50%;
+      color:rgba(255,255,255,.66);
+      transition:color 280ms var(--ease),transform 280ms var(--ease);
+    }
+
+    .side-nav-item.is-active{
+      color:#101211;
+      text-shadow:none;
+    }
+
+    .side-nav-item:focus-within{
+      outline:2px solid rgba(255,255,255,.75);
+      outline-offset:3px;
+    }
+
+    .side-nav-item button{
+      width:100%;
+      height:100%;
+      display:grid;
+      place-items:center;
+      border:0;
+      padding:0;
+      background:transparent;
+      transition:transform 200ms var(--ease),color 200ms var(--ease);
+    }
+
+    .side-nav-item button:hover{transform:scale(1.08)}
+    .side-nav-item button:active{transform:scale(.94)}
+
+    .nav-icon{
+      width:19px;
+      height:19px;
+      display:block;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.8;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    .gooey-nav-container .effect{
+      position:absolute;
+      z-index:1;
+      left:0;
+      top:0;
+      width:0;
+      height:42px;
+      pointer-events:none;
+      display:grid;
+      place-items:center;
+      transition:transform 440ms var(--linear-ease),width 440ms var(--linear-ease),height 440ms var(--linear-ease);
+    }
+
+    .gooey-nav-container .effect.text{
+      z-index:2;
+      color:#101211;
+    }
+
+    .gooey-nav-container .effect.filter{
+      filter:blur(7px) contrast(100) blur(0);
+      mix-blend-mode:lighten;
+    }
+
+    .gooey-nav-container .effect.filter::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      z-index:-2;
+      border-radius:50%;
+      background:#171a18;
+    }
+
+    .gooey-nav-container .effect.filter::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      z-index:-1;
+      border-radius:50%;
+      background:#f8faf7;
+      opacity:0;
+      transform:scale(.82);
+    }
+
+    .gooey-nav-container .effect.active::after{
+      animation:soft-rect-in 300ms var(--ease) both;
+    }
+
+    .particle,
+    .point{
+      display:block;
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      opacity:0;
+      transform-origin:center;
+    }
+
+    .particle{
+      position:absolute;
+      left:calc(50% - 9px);
+      top:calc(50% - 9px);
+      animation:particle var(--time,1200ms) ease 1 -250ms;
+    }
+
+    .point{
+      background:var(--particle-color,#fff);
+      opacity:1;
+      animation:point var(--time,1200ms) ease 1 -250ms;
+    }
+
+    .seed-particle{display:none}
+
+    .legacy-top-zone{
+      position:relative;
+      z-index:10;
+      height:104px;
+      display:grid;
+      grid-template-columns:1fr minmax(280px,420px) 1fr;
+      align-items:center;
+      border-bottom:1px solid rgba(26,26,26,.1);
+    }
+
+    .brand-lockup{
+      display:inline-flex;
+      align-items:center;
+      gap:12px;
+      text-decoration:none;
+      justify-self:start;
+    }
+
+    .brand-mark{
+      display:grid;
+      width:42px;
+      height:42px;
+      place-items:center;
+      border:1px solid var(--ink);
+      border-radius:50%;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:.08em;
+      background:rgba(245,243,240,.38);
+      backdrop-filter:blur(12px);
+    }
+
+    .brand-lockup strong,
+    .brand-lockup small{display:block}
+    .brand-lockup strong{font-size:15px;font-weight:600;letter-spacing:.08em}
+    .brand-lockup small{margin-top:3px;color:var(--muted);font-size:9px;letter-spacing:.19em}
+
+    .bar-meta{
+      justify-self:end;
+      margin:0;
+      color:var(--muted);
+      font-size:10px;
+      letter-spacing:.2em;
+    }
+
+    .legacy-center-slot{
+      position:relative;
+      justify-self:center;
+      width:min(420px,100%);
+      min-height:64px;
+      display:grid;
+      place-items:center;
+    }
+
+    .nav-shell{
+      position:relative;
+      width:100%;
+      display:grid;
+      place-items:center;
+    }
+
+    .legacy-dialogue-control{
+      position:relative;
+      z-index:4;
+      width:min(100%,340px);
+      min-height:58px;
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:12px;
+      border:1px solid rgba(255,255,255,.66);
+      border-radius:999px;
+      padding:8px 10px 8px 18px;
+      background:var(--glass);
+      box-shadow:0 18px 46px rgba(37,31,28,.12),inset 0 1px 0 rgba(255,255,255,.88);
+      backdrop-filter:blur(22px);
+      transition:transform 240ms var(--ease),background-color 240ms var(--ease),box-shadow 240ms var(--ease),border-radius 520ms var(--spring);
+      touch-action:manipulation;
+    }
+
+    .legacy-dialogue-control:hover{
+      transform:translateY(-2px) scale(1.015);
+      background:var(--glass-strong);
+      box-shadow:0 24px 68px rgba(37,31,28,.16),inset 0 1px 0 rgba(255,255,255,.92);
+    }
+
+    .legacy-dialogue-control:active{transform:translateY(1px) scale(.98)}
+
+    .nav-shell.is-open .legacy-dialogue-control{
+      border-radius:20px 20px 16px 16px;
+      background:rgba(255,255,255,.9);
+    }
+
+    .button-orb{
+      position:relative;
+      display:grid;
+      width:34px;
+      height:34px;
+      place-items:center;
+      border-radius:50%;
+      background:#1a1a1a;
+      color:#fff;
+      overflow:hidden;
+    }
+
+    .button-orb::before{
+      content:"";
+      position:absolute;
+      inset:-45%;
+      background:conic-gradient(from 80deg,transparent,rgba(232,168,124,.95),transparent,rgba(140,162,170,.9),transparent);
+      animation:orb-spin 5.4s linear infinite;
+    }
+
+    .button-orb svg{
+      position:relative;
+      z-index:1;
+      width:17px;
+      height:17px;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.8;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      transition:transform 420ms var(--spring);
+    }
+
+    .nav-shell.is-open .button-orb svg{transform:rotate(135deg)}
+
+    .legacy-copy{
+      min-width:0;
+      text-align:left;
+    }
+
+    .legacy-copy small{
+      display:block;
+      color:var(--muted);
+      font-size:9px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+
+    .legacy-copy span{
+      display:block;
+      margin-top:2px;
+      overflow:hidden;
+      color:var(--ink);
+      font-size:14px;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+      letter-spacing:.02em;
+    }
+
+    .nav-state{
+      display:inline-grid;
+      min-width:50px;
+      height:36px;
+      place-items:center;
+      border-radius:999px;
+      background:rgba(26,26,26,.07);
+      color:var(--muted);
+      font-size:10px;
+      letter-spacing:.13em;
+      transition:background-color 240ms var(--ease),color 240ms var(--ease);
+    }
+
+    .nav-shell.is-open .nav-state{
+      background:var(--ink);
+      color:#fff;
+    }
+
+    .legacy-expanded-layer{
+      position:absolute;
+      z-index:3;
+      top:calc(100% + 10px);
+      left:50%;
+      width:min(420px,100%);
+      padding:12px;
+      border:1px solid rgba(255,255,255,.72);
+      border-radius:24px;
+      background:rgba(255,255,255,.82);
+      box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.9);
+      backdrop-filter:blur(24px);
+      transform:translateX(-50%) translateY(-16px) scale(.96);
+      transform-origin:top center;
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+      transition:opacity 220ms var(--ease),transform 520ms var(--spring),visibility 0ms linear 240ms;
+    }
+
+    .nav-shell.is-open .legacy-expanded-layer{
+      opacity:1;
+      visibility:visible;
+      pointer-events:auto;
+      transform:translateX(-50%) translateY(0) scale(1);
+      transition-delay:40ms,40ms,0ms;
+    }
+
+    .panel-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:4px 4px 12px;
+      color:var(--muted);
+      font-size:10px;
+      letter-spacing:.16em;
+    }
+
+    .panel-header b{
+      color:var(--ink);
+      font-size:11px;
+      letter-spacing:.14em;
+    }
+
+    .nav-actions{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+    }
+
+    .nav-action{
+      position:relative;
+      display:grid;
+      grid-template-columns:38px 1fr auto;
+      gap:12px;
+      align-items:center;
+      min-height:72px;
+      border:1px solid rgba(26,26,26,.08);
+      border-radius:18px;
+      padding:12px;
+      background:rgba(245,243,240,.58);
+      text-align:left;
+      overflow:hidden;
+      transition:transform 240ms var(--ease),background-color 240ms var(--ease),border-color 240ms var(--ease);
+    }
+
+    .nav-action::after{
+      content:"";
+      position:absolute;
+      right:-16%;
+      bottom:-70%;
+      width:52%;
+      aspect-ratio:1;
+      border-radius:50%;
+      background:rgba(232,168,124,.22);
+      filter:blur(8px);
+      transition:transform 520ms var(--spring),opacity 240ms var(--ease);
+      opacity:.5;
+    }
+
+    .nav-action:hover{
+      transform:translateY(-2px);
+      background:rgba(255,255,255,.8);
+      border-color:rgba(26,26,26,.16);
+    }
+
+    .nav-action:hover::after{transform:translate(-18%,-12%) scale(1.26);opacity:.84}
+
+    .action-index{
+      position:relative;
+      z-index:1;
+      display:grid;
+      width:38px;
+      height:38px;
+      place-items:center;
+      border-radius:50%;
+      background:var(--ink);
+      color:#fff;
+      font-size:10px;
+      letter-spacing:.1em;
+    }
+
+    .action-copy{
+      position:relative;
+      z-index:1;
+      min-width:0;
+    }
+
+    .action-copy strong{
+      display:block;
+      font-size:15px;
+      font-weight:600;
+      letter-spacing:.02em;
+    }
+
+    .action-copy span{
+      display:block;
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .action-arrow{
+      position:relative;
+      z-index:1;
+      color:var(--muted);
+      font-size:18px;
+      transition:transform 240ms var(--ease),color 240ms var(--ease);
+    }
+
+    .nav-action:hover .action-arrow{
+      color:var(--ink);
+      transform:translate(3px,-3px);
+    }
+
+    .feedback-particle{
+      position:absolute;
+      z-index:6;
+      left:50%;
+      top:50%;
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:var(--particle-color,#e8a87c);
+      pointer-events:none;
+      animation:particle-pop 780ms ease-out forwards;
+    }
+
+    .hero-layout{
+      position:relative;
+      z-index:2;
+      display:grid;
+      grid-template-columns:minmax(280px,.9fr) minmax(360px,460px) minmax(150px,220px);
+      gap:clamp(24px,3.5vw,54px);
+      min-height:100svh;
+      align-items:center;
+      padding-left:clamp(96px,10vw,150px);
+      padding-top:76px;
+    }
+
+    .hero-copy{max-width:660px}
+    .eyebrow{display:flex;align-items:center;gap:12px;margin:0 0 28px;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.18em}
+    .eyebrow i{width:38px;height:1px;background:var(--accent)}
+    h1{margin:0;font-size:clamp(56px,5.2vw,88px);font-weight:400;line-height:1.07;letter-spacing:-.035em;text-wrap:balance}
+    h1 em{color:var(--muted);font-family:Georgia,"Songti SC",serif;font-weight:400}
+    .intro{max-width:480px;margin:30px 0 0;color:var(--muted);font-size:clamp(16px,1.25vw,19px);line-height:1.7;letter-spacing:.02em}
+    .prototype-note{margin:34px 0 0;padding:13px 16px;border:1px solid var(--line);border-radius:999px;background:rgba(245,243,240,.58);color:var(--muted);font-size:12px;letter-spacing:.06em;width:max-content;max-width:100%}
+
+    .placement-map{
+      justify-self:center;
+      width:min(520px,100%);
+      border:1px solid rgba(255,255,255,.72);
+      border-radius:30px;
+      padding:20px;
+      background:rgba(255,255,255,.36);
+      box-shadow:0 28px 80px rgba(37,31,28,.12);
+      backdrop-filter:blur(22px);
+    }
+
+    .map-screen{
+      position:relative;
+      min-height:360px;
+      border:1px solid rgba(26,26,26,.12);
+      border-radius:22px;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 70% 34%,rgba(232,168,124,.3),transparent 28%),
+        linear-gradient(rgba(26,26,26,.045) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(26,26,26,.045) 1px,transparent 1px),
+        rgba(245,243,240,.72);
+      background-size:auto,42px 42px,42px 42px,auto;
+    }
+
+    .map-bar{
+      position:absolute;
+      top:0;
+      right:0;
+      left:0;
+      height:64px;
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      align-items:center;
+      border-bottom:1px solid rgba(26,26,26,.1);
+      padding:0 16px;
+      color:var(--muted);
+      font-size:9px;
+      letter-spacing:.16em;
+    }
+
+    .map-anchor{
+      width:118px;
+      height:28px;
+      border-radius:999px;
+      background:rgba(26,26,26,.86);
+      box-shadow:0 10px 26px rgba(26,26,26,.18);
+    }
+
+    .map-copy{
+      position:absolute;
+      left:24px;
+      bottom:28px;
+      max-width:240px;
+    }
+
+    .map-copy span{color:var(--muted);font-size:10px;letter-spacing:.16em}
+    .map-copy p{margin:10px 0 0;font-size:26px;line-height:1.05;letter-spacing:-.06em}
+
+    .tablet-video-player{
+      position:relative;
+      justify-self:center;
+      width:min(456px,100%);
+      perspective:1200px;
+    }
+
+    .tablet-device{
+      position:relative;
+      transform:rotateY(-2.2deg) rotateX(.8deg);
+      transform-style:preserve-3d;
+    }
+
+    .tablet-side-button{
+      position:absolute;
+      z-index:0;
+      right:-4px;
+      top:118px;
+      width:4px;
+      height:58px;
+      border-radius:0 3px 3px 0;
+      background:linear-gradient(180deg,#cfd5d2,#8e9994);
+      box-shadow:inset 1px 0 0 rgba(255,255,255,.5);
+    }
+
+    .tablet-side-button.volume{
+      left:72px;
+      top:-4px;
+      width:74px;
+      height:4px;
+      border-radius:3px 3px 0 0;
+    }
+
+    .tablet-aluminum-rim{
+      position:relative;
+      border-radius:26px;
+      padding:8px;
+      background:
+        linear-gradient(135deg,rgba(255,255,255,.9),rgba(171,182,178,.76) 28%,rgba(86,94,91,.72) 49%,rgba(248,250,247,.9) 78%,rgba(134,144,139,.82)),
+        #c9d1cd;
+      box-shadow:0 12px 28px rgba(17,20,17,.13),0 3px 8px rgba(17,20,17,.07),inset 0 0 0 1px rgba(255,255,255,.72);
+    }
+
+    .tablet-bezel{
+      position:relative;
+      border-radius:20px;
+      padding:14px;
+      background:linear-gradient(145deg,#141716,#060706);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),inset 0 0 28px rgba(255,255,255,.035);
+    }
+
+    .tablet-camera{
+      position:absolute;
+      z-index:6;
+      left:50%;
+      top:7px;
+      width:5px;
+      height:5px;
+      border-radius:50%;
+      transform:translateX(-50%);
+      background:#1c2421;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.13),0 0 0 2px rgba(0,0,0,.3);
+    }
+
+    .tablet-reflection{
+      position:absolute;
+      z-index:8;
+      left:7%;
+      top:4%;
+      width:67%;
+      height:32%;
+      border-radius:22px 22px 58% 30%;
+      background:linear-gradient(120deg,rgba(255,255,255,.28),rgba(255,255,255,.03) 62%,transparent);
+      transform:skewX(-8deg);
+      pointer-events:none;
+    }
+
+    .tablet-screen{
+      position:relative;
+      aspect-ratio:3 / 4;
+      overflow:hidden;
+      border-radius:12px;
+      background:#10100f;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.18), inset 0 0 38px rgba(0,0,0,.48);
+      color:#fff;
+      touch-action:pan-y;
+      overscroll-behavior:contain;
+    }
+
+    .tablet-glass{
+      position:absolute;
+      z-index:7;
+      inset:0;
+      border-radius:inherit;
+      background:
+        linear-gradient(115deg,rgba(255,255,255,.24),rgba(255,255,255,.04) 34%,transparent 62%),
+        radial-gradient(circle at 22% 12%,rgba(255,255,255,.16),transparent 26%);
+      mix-blend-mode:screen;
+      pointer-events:none;
+    }
+
+    .tablet-home-indicator{
+      position:absolute;
+      z-index:9;
+      left:50%;
+      bottom:8px;
+      width:88px;
+      height:4px;
+      border-radius:999px;
+      transform:translateX(-50%);
+      background:rgba(255,255,255,.48);
+      pointer-events:none;
+    }
+
+    .video-feed{
+      position:absolute;
+      inset:0;
+      transition:transform 520ms var(--ease);
+    }
+
+    .video-slide{
+      position:absolute;
+      inset:0;
+      display:grid;
+      align-content:end;
+      padding:26px 64px 26px 22px;
+      opacity:0;
+      transform:translateY(14%);
+      transition:opacity 420ms var(--ease),transform 520ms var(--ease);
+      background:
+        radial-gradient(circle at 62% 18%,rgba(255,255,255,.22),transparent 22%),
+        linear-gradient(150deg,var(--tone-a),var(--tone-b));
+    }
+
+    .video-slide.is-active{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    .video-slide small{
+      font-size:10px;
+      letter-spacing:.14em;
+      color:rgba(255,255,255,.7);
+    }
+
+    .video-slide strong{
+      display:block;
+      max-width:210px;
+      margin-top:8px;
+      font-size:25px;
+      line-height:1.08;
+      letter-spacing:-.04em;
+    }
+
+    .video-slide p{
+      margin:10px 0 0;
+      max-width:220px;
+      color:rgba(255,255,255,.76);
+      font-size:12px;
+      line-height:1.55;
+    }
+
+    .douyin-actions{
+      position:absolute;
+      z-index:9;
+      right:13px;
+      bottom:76px;
+      display:grid;
+      gap:12px;
+      place-items:center;
+    }
+
+    .douyin-actions button{
+      width:48px;
+      min-height:48px;
+      display:grid;
+      justify-items:center;
+      align-content:center;
+      gap:3px;
+      border:0;
+      padding:0;
+      background:transparent;
+      color:#fff;
+      text-shadow:0 1px 3px rgba(0,0,0,.36);
+      transition:transform 180ms var(--ease),color 220ms var(--ease);
+    }
+
+    .douyin-actions button:active{transform:scale(.9)}
+
+    .icon-wrap{
+      display:grid;
+      width:40px;
+      height:40px;
+      place-items:center;
+      border-radius:50%;
+      background:transparent;
+      filter:drop-shadow(0 1px 2px rgba(0,0,0,.42));
+    }
+
+    .action-avatar .avatar-core{
+      position:relative;
+      display:grid;
+      width:42px;
+      height:42px;
+      place-items:center;
+      border:2px solid rgba(255,255,255,.82);
+      border-radius:50%;
+      background:linear-gradient(145deg,#f7faf7,#b9cec8);
+      color:var(--ink);
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.08em;
+      box-shadow:0 2px 8px rgba(0,0,0,.2);
+    }
+
+    .action-avatar .avatar-core::after{
+      content:"+";
+      position:absolute;
+      left:50%;
+      bottom:-7px;
+      width:17px;
+      height:17px;
+      display:grid;
+      place-items:center;
+      border:2px solid #fff;
+      border-radius:50%;
+      transform:translateX(-50%);
+      background:#ff2f5f;
+      color:#fff;
+      font-size:12px;
+      line-height:1;
+    }
+
+    .action-icon{
+      width:24px;
+      height:24px;
+      display:block;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:2.15;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    .icon-heart{stroke-width:2.25}
+
+    .action-like.is-liked .icon-heart{
+      fill:#ff2f5f;
+      stroke:#ff2f5f;
+    }
+
+    .douyin-actions small{
+      display:block;
+      font-size:9px;
+      font-weight:700;
+      line-height:1;
+      color:rgba(255,255,255,.84);
+    }
+
+    .swipe-hint{
+      position:absolute;
+      z-index:10;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%);
+      display:grid;
+      justify-items:center;
+      gap:4px;
+      color:rgba(255,255,255,.84);
+      font-size:11px;
+      letter-spacing:.04em;
+      animation:hint-float 1500ms var(--ease) infinite;
+      pointer-events:none;
+      transition:opacity 220ms var(--ease),transform 220ms var(--ease);
+    }
+
+    .swipe-hint::before{
+      content:"";
+      width:20px;
+      height:28px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.48);
+      background:
+        linear-gradient(rgba(255,255,255,.68),rgba(255,255,255,.68)) 50% 8px / 3px 7px no-repeat,
+        rgba(0,0,0,.18);
+      backdrop-filter:blur(6px);
+    }
+
+    .tablet-screen.has-swiped .swipe-hint{
+      opacity:0;
+      transform:translateX(-50%) translateY(8px);
+      animation:none;
+    }
+
+    .video-index{
+      position:absolute;
+      z-index:5;
+      left:20px;
+      top:18px;
+      padding:7px 9px;
+      border-radius:10px;
+      background:rgba(15,15,15,.28);
+      color:rgba(255,255,255,.72);
+      font-size:10px;
+      letter-spacing:.12em;
+      backdrop-filter:blur(10px);
+    }
+
+    .cat-companion-slot{
+      align-self:stretch;
+      min-height:380px;
+      display:grid;
+      align-content:center;
+      gap:12px;
+      border:1px dashed rgba(26,26,26,.2);
+      border-radius:18px;
+      padding:18px;
+      background:rgba(255,255,255,.26);
+      color:var(--muted);
+    }
+
+    .cat-companion-slot small{
+      font-size:10px;
+      letter-spacing:.16em;
+      color:var(--ink);
+    }
+
+    .cat-companion-slot p{
+      margin:0;
+      font-size:13px;
+      line-height:1.65;
+    }
+
+    @keyframes background-drift{to{transform:translate3d(2%,-2%,0) rotate(4deg) scale(1.05)}}
+    @keyframes blob-a{0%{transform:translate3d(0,0,0) scale(1)}45%{transform:translate3d(18%,12%,0) scale(1.18)}78%{transform:translate3d(32%,-8%,0) scale(.92)}100%{transform:translate3d(8%,18%,0) scale(1.08)}}
+    @keyframes blob-b{0%{transform:translate3d(0,0,0) scale(.95)}45%{transform:translate3d(-24%,-16%,0) scale(1.16)}80%{transform:translate3d(-8%,16%,0) scale(.9)}100%{transform:translate3d(-30%,-4%,0) scale(1.05)}}
+    @keyframes orb-spin{to{transform:rotate(360deg)}}
+    @keyframes particle-pop{
+      from{opacity:1;transform:translate(-50%,-50%) scale(.3)}
+      to{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(1.2)}
+    }
+    @keyframes soft-rect-in{to{opacity:1;transform:scale(1)}}
+    @keyframes particle{
+      0%{opacity:1;transform:rotate(0deg) translate(var(--start-x),var(--start-y))}
+      70%{opacity:1;transform:rotate(calc(var(--rotate) * .5)) translate(calc(var(--end-x) * 1.15),calc(var(--end-y) * 1.15))}
+      100%{opacity:1;transform:rotate(var(--rotate)) translate(calc(var(--end-x) * .52),calc(var(--end-y) * .52))}
+    }
+    @keyframes point{
+      0%{opacity:0;transform:scale(0)}
+      38%{opacity:1}
+      68%{opacity:1;transform:scale(var(--scale,1))}
+      100%{opacity:0;transform:scale(0)}
+    }
+    @keyframes hint-float{
+      0%,100%{transform:translateX(-50%) translateY(0)}
+      50%{transform:translateX(-50%) translateY(-7px)}
+    }
+
+    @media(max-width:900px){
+      .home-nav-prototype{padding-inline:clamp(18px,5vw,32px);overflow-y:auto}
+      body{overflow:auto}
+      .dialogue-component{position:relative;top:auto;left:auto;width:100%;transform:none}
+      .dialogue-component:hover{transform:translateY(-2px)}
+      .side-gooey-strip{left:12px;width:44px;height:168px;transform:translateY(-50%)}
+      .gooey-nav-container{width:44px;height:168px;padding:7px 2px}
+      .side-nav-item{height:38px}
+      .hero-layout{grid-template-columns:1fr;gap:40px;min-height:auto;padding:70px 0 46px 76px;text-align:left}
+      .hero-copy{margin:auto}
+      .eyebrow{justify-content:flex-start}
+      .prototype-note{margin-inline:auto}
+      .placement-map,.tablet-video-player{width:min(420px,100%)}
+      .cat-companion-slot{min-height:150px}
+    }
+
+    @media(max-width:520px){
+      .dialogue-component{grid-template-columns:auto 1fr}
+      .dialogue-event-tag{grid-column:1 / -1;width:100%}
+      .side-gooey-strip{position:fixed;left:10px}
+      .hero-layout{padding-left:68px;padding-top:46px}
+      h1{font-size:46px}
+      .tablet-device{transform:none}
+      .video-slide{padding-right:58px}
+    }
+
+    @media(prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto}
+      *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;transition-delay:0ms!important}
+    }
+  </style>
+</head>
+<body>
+  <main class="home-nav-prototype">
+    <div class="dot-grid-background" data-static-dot-grid aria-hidden="true"></div>
+
+    <section class="dialogue-component" aria-label="页面事件对话组件" data-dialogue-event="idle">
+      <span class="dialogue-mark" aria-hidden="true">LXX</span>
+      <p class="dialogue-copy" aria-live="polite">
+        <small>PAGE DIALOGUE</small>
+        <span data-dialogue-text>欢迎来到我的作品集，我会根据你的浏览动作给你一些提示。</span>
+      </p>
+      <button class="dialogue-event-tag" type="button" aria-pressed="false" data-like-button>LIKE</button>
+    </section>
+
+    <aside class="side-gooey-strip icon-capsule-nav" aria-label="左侧图标胶囊导航" data-side-gooey-strip>
+      <div class="gooey-nav-container" data-gooey-nav>
+        <nav>
+          <ul>
+            <li class="side-nav-item is-active">
+              <button type="button" aria-label="首页" data-nav-index="0" data-dialogue="你现在在第一屏，先感受整体气质。">
+                <svg class="nav-icon nav-icon-home" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9Z"/></svg>
+              </button>
+            </li>
+            <li class="side-nav-item">
+              <button type="button" aria-label="页面区块" data-nav-index="1" data-dialogue="第二屏之后会做，现在这里只预留入口。">
+                <svg class="nav-icon nav-icon-sections" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="2"/><rect x="4" y="14" width="16" height="6" rx="2"/></svg>
+              </button>
+            </li>
+            <li class="side-nav-item">
+              <button type="button" aria-label="作品" data-nav-index="2" data-dialogue="作品入口后面会连接平板播放组件。">
+                <svg class="nav-icon nav-icon-work" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3V9Z"/></svg>
+              </button>
+            </li>
+            <li class="side-nav-item">
+              <button type="button" aria-label="联系" data-nav-index="3" data-dialogue="这里之后会承接作者信息和合作方式。">
+                <svg class="nav-icon nav-icon-contact" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>
+              </button>
+            </li>
+          </ul>
+        </nav>
+        <span class="effect filter active" aria-hidden="true">
+          <span class="particle" hidden><span class="point"></span></span>
+        </span>
+        <span class="effect text" aria-hidden="true"></span>
+      </div>
+    </aside>
+
+    <section class="hero-layout" id="hero-copy" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><i></i> VIDEO EDITOR · 2026</p>
+        <h1 id="hero-title">让每一帧，<br><em>都值得停留</em></h1>
+        <p class="intro">当前只确认第一屏里的两个组件关系：页面上方是对话组件，负责根据事件说话；左侧边框中线是柔边粘稠条形导航，负责未来切换页面区块。</p>
+        <p class="prototype-note">当前范围：背景 + 对话组件 + 左侧粘稠条形导航；第二屏以后再做。</p>
+      </div>
+
+      <section class="tablet-video-player" aria-label="平板视频播放组件" data-tablet-player>
+        <div class="tablet-device">
+          <span class="tablet-side-button" aria-hidden="true"></span>
+          <span class="tablet-side-button volume" aria-hidden="true"></span>
+          <div class="tablet-aluminum-rim">
+            <div class="tablet-bezel">
+              <span class="tablet-camera" aria-hidden="true"></span>
+              <div class="tablet-screen" data-tablet-screen>
+            <div class="video-feed" data-video-feed>
+              <article class="video-slide is-active" style="--tone-a:#2d2f35;--tone-b:#d1936f" data-video-title="商业节奏">
+                <small>VIDEO 01 · BRAND RHYTHM</small>
+                <strong>用前三秒把观众拉进画面里。</strong>
+                <p>模拟真实视频嵌入平板内部，后续可替换成正式作品素材。</p>
+              </article>
+              <article class="video-slide" style="--tone-a:#173c42;--tone-b:#8ca2aa" data-video-title="人物情绪">
+                <small>VIDEO 02 · HUMAN STORY</small>
+                <strong>把人物情绪剪得更有呼吸感。</strong>
+                <p>通过上下滑动切换，形成类似短视频应用的观看节奏。</p>
+              </article>
+              <article class="video-slide" style="--tone-a:#2f2430;--tone-b:#829d78" data-video-title="产品质感">
+                <small>VIDEO 03 · PRODUCT DETAIL</small>
+                <strong>让产品镜头保留触感和重量。</strong>
+                <p>保留头像、点赞、评论、收藏、转发这组短视频动作入口。</p>
+              </article>
+            </div>
+            <div class="video-index" data-video-index>01 / 03</div>
+            <div class="douyin-actions" aria-label="短视频互动按钮组">
+              <button class="action-avatar" type="button" aria-label="作者头像">
+                <span class="avatar-core">LXX</span>
+              </button>
+              <button class="action-like" type="button" aria-label="点赞视频" data-video-like>
+                <span class="icon-wrap">
+                  <svg class="action-icon icon-heart" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20.8 4.6c-2.1-2-5.5-1.7-7.4.5L12 6.7l-1.4-1.6C8.7 2.9 5.3 2.6 3.2 4.6.8 6.9.9 10.6 3.4 13l7.3 6.9c.7.7 1.9.7 2.6 0l7.3-6.9c2.5-2.4 2.6-6.1.2-8.4Z"/>
+                  </svg>
+                </span>
+                <small data-video-like-count>2.4w</small>
+              </button>
+              <button class="action-comment" type="button" aria-label="评论视频">
+                <span class="icon-wrap">
+                  <svg class="action-icon icon-comment" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20.4 12.1c0 4-3.7 7.2-8.4 7.2-1.1 0-2.1-.17-3.05-.5L4.5 20l1.13-3.44c-1.25-1.23-2.03-2.78-2.03-4.46 0-4 3.7-7.2 8.4-7.2s8.4 3.2 8.4 7.2Z"/>
+                    <path d="M8.4 11.9h.01M12 11.9h.01M15.6 11.9h.01"/>
+                  </svg>
+                </span>
+                <small>328</small>
+              </button>
+              <button class="action-favorite" type="button" aria-label="收藏视频">
+                <span class="icon-wrap">
+                  <svg class="action-icon icon-bookmark" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6.5 4.8c0-1 .8-1.8 1.8-1.8h7.4c1 0 1.8.8 1.8 1.8v15.1l-5.5-3.2-5.5 3.2V4.8Z"/>
+                  </svg>
+                </span>
+                <small>收藏</small>
+              </button>
+              <button class="action-share" type="button" aria-label="转发视频">
+                <span class="icon-wrap">
+                  <svg class="action-icon icon-share" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M14.5 5.2 20.3 11l-5.8 5.8"/>
+                    <path d="M19.6 11H10a6 6 0 0 0-6 6v1.2"/>
+                  </svg>
+                </span>
+                <small>转发</small>
+              </button>
+            </div>
+                <div class="tablet-glass" aria-hidden="true"></div>
+                <span class="tablet-reflection" aria-hidden="true"></span>
+                <span class="tablet-home-indicator" aria-hidden="true"></span>
+                <div class="swipe-hint" data-swipe-hint>上滑切换视频</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="cat-companion-slot" aria-label="第一屏宠物猫组件预留位">
+        <small>COMPANION SLOT</small>
+        <p>暂留猫咪陪伴位。这里之后单独设计沉浸陪伴式惊喜互动，现在只保留空间和层级，不做猫本体。</p>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const dialogueRoot = document.querySelector('.dialogue-component');
+      const dialogueText = document.querySelector('[data-dialogue-text]');
+      const likeButton = document.querySelector('[data-like-button]');
+      const strip = document.querySelector('[data-side-gooey-strip]');
+      const gooeyContainer = document.querySelector('[data-gooey-nav]');
+      const items = [...document.querySelectorAll('.side-nav-item')];
+      const effect = document.querySelector('.effect.filter');
+      const textEffect = document.querySelector('.effect.text');
+      const tabletScreen = document.querySelector('[data-tablet-screen]');
+      const swipeHint = document.querySelector('[data-swipe-hint]');
+      const videoSlides = [...document.querySelectorAll('.video-slide')];
+      const videoIndex = document.querySelector('[data-video-index]');
+      const videoLike = document.querySelector('[data-video-like]');
+      const videoLikeCount = document.querySelector('[data-video-like-count]');
+      const defaultDialogue = '欢迎来到我的作品集，我会根据你的浏览动作给你一些提示。';
+      const particleColors = ['#ffffff'];
+      let activeVideoIndex = 0;
+      let touchStartY = 0;
+      let lastWheelAt = 0;
+      let hasSwiped = false;
+
+      function updateDialogue(text, eventName = 'interaction') {
+        if (!dialogueText || !dialogueRoot) return;
+        dialogueText.textContent = text || defaultDialogue;
+        dialogueRoot.dataset.dialogueEvent = eventName;
+      }
+
+      function randomOffset(distance, total, index) {
+        const angle = ((360 / total) * index + (Math.random() * 8 - 4)) * Math.PI / 180;
+        return [Math.cos(angle) * distance, Math.sin(angle) * distance];
+      }
+
+      function makeGooeyParticles(target = effect) {
+        if (!target || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        target.querySelectorAll('.particle:not(.seed-particle)').forEach(node => node.remove());
+
+        const count = 14;
+        for (let index = 0; index < count; index += 1) {
+          const particle = document.createElement('span');
+          const point = document.createElement('span');
+          const start = randomOffset(76, count, index);
+          const end = randomOffset(14 + Math.random() * 6, count, index);
+          const time = 850 + Math.random() * 520;
+          const rotate = (Math.random() * 60 - 30) + 'deg';
+
+          particle.className = 'particle';
+          point.className = 'point';
+          particle.style.setProperty('--start-x', start[0] + 'px');
+          particle.style.setProperty('--start-y', start[1] + 'px');
+          particle.style.setProperty('--end-x', end[0] + 'px');
+          particle.style.setProperty('--end-y', end[1] + 'px');
+          particle.style.setProperty('--time', time + 'ms');
+          particle.style.setProperty('--rotate', rotate);
+          point.style.setProperty('--scale', String(.72 + Math.random() * .62));
+          point.style.setProperty('--particle-color', particleColors[index % particleColors.length]);
+
+          particle.appendChild(point);
+          target.appendChild(particle);
+          window.setTimeout(() => particle.remove(), time + 80);
+        }
+      }
+
+      function moveGooeyEffect(item) {
+        if (!gooeyContainer || !item || !effect || !textEffect) return;
+        const stripRect = gooeyContainer.getBoundingClientRect();
+        const itemRect = item.getBoundingClientRect();
+        const styles = {
+          transform: 'translate3d(' + (itemRect.left - stripRect.left) + 'px,' + (itemRect.top - stripRect.top) + 'px,0)',
+          width: itemRect.width + 'px',
+          height: itemRect.height + 'px'
+        };
+        Object.assign(effect.style, styles);
+        Object.assign(textEffect.style, styles);
+        effect.classList.remove('active');
+        void effect.offsetWidth;
+        effect.classList.add('active');
+        makeGooeyParticles(effect);
+      }
+
+      function activateItem(item, eventName = 'side-nav') {
+        items.forEach(entry => entry.classList.toggle('is-active', entry === item));
+        moveGooeyEffect(item);
+        const button = item.querySelector('button');
+        updateDialogue(button?.dataset.dialogue, eventName);
+      }
+
+      function hideSwipeHint() {
+        if (hasSwiped) return;
+        hasSwiped = true;
+        tabletScreen?.classList.add('has-swiped');
+        swipeHint?.setAttribute('aria-hidden', 'true');
+      }
+
+      function switchVideo(direction = 1) {
+        if (!videoSlides.length) return;
+        hideSwipeHint();
+        activeVideoIndex = (activeVideoIndex + direction + videoSlides.length) % videoSlides.length;
+        videoSlides.forEach((slide, index) => {
+          slide.classList.toggle('is-active', index === activeVideoIndex);
+        });
+        if (videoIndex) {
+          videoIndex.textContent = String(activeVideoIndex + 1).padStart(2, '0') + ' / ' + String(videoSlides.length).padStart(2, '0');
+        }
+        const title = videoSlides[activeVideoIndex]?.dataset.videoTitle || '下一组视频';
+        updateDialogue('已切换到「' + title + '」，你可以继续上滑浏览。', 'video-switch');
+      }
+
+      items.forEach(item => {
+        const button = item.querySelector('button');
+        button?.addEventListener('click', () => activateItem(item, 'side-nav-click'));
+        button?.addEventListener('mouseenter', () => updateDialogue(button.dataset.dialogue, 'side-nav-hover'));
+        button?.addEventListener('focus', () => updateDialogue(button.dataset.dialogue, 'side-nav-focus'));
+      });
+
+      likeButton?.addEventListener('click', () => {
+        const liked = likeButton.getAttribute('aria-pressed') === 'true';
+        likeButton.setAttribute('aria-pressed', String(!liked));
+        likeButton.classList.toggle('is-liked', !liked);
+        likeButton.textContent = liked ? 'LIKE' : 'LIKED';
+        updateDialogue(liked ? defaultDialogue : '收到你的喜欢，我会继续把后面的内容讲清楚。', 'like-toggle');
+      });
+
+      videoLike?.addEventListener('click', () => {
+        const liked = videoLike.classList.toggle('is-liked');
+        if (videoLikeCount) videoLikeCount.textContent = liked ? '2.5w' : '2.4w';
+        updateDialogue(liked ? '这条视频被你点亮了。' : '视频点赞已取消。', 'video-like-toggle');
+      });
+
+      tabletScreen?.addEventListener('touchstart', event => {
+        touchStartY = event.changedTouches[0]?.clientY || 0;
+      }, { passive: true });
+
+      tabletScreen?.addEventListener('touchend', event => {
+        const touchEndY = event.changedTouches[0]?.clientY || 0;
+        const deltaY = touchStartY - touchEndY;
+        if (Math.abs(deltaY) > 36) switchVideo(deltaY > 0 ? 1 : -1);
+      }, { passive: true });
+
+      tabletScreen?.addEventListener('wheel', event => {
+        event.preventDefault();
+        const now = Date.now();
+        if (now - lastWheelAt < 520 || Math.abs(event.deltaY) < 18) return;
+        lastWheelAt = now;
+        switchVideo(event.deltaY > 0 ? 1 : -1);
+      }, { passive: false });
+
+      window.addEventListener('resize', () => {
+        const active = document.querySelector('.side-nav-item.is-active');
+        moveGooeyEffect(active);
+      });
+
+      window.addEventListener('load', () => {
+        const active = document.querySelector('.side-nav-item.is-active');
+        moveGooeyEffect(active);
+      });
+    })();
+  </script>
+</body>
+</html>
